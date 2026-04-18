@@ -42,8 +42,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: mocha-test-result
-          path: test-result.xml
+          name: mocha-test-results
+          path: test-results.xml
 
   code-coverage:
     name: Code Coverage
