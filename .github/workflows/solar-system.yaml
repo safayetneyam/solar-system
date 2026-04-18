@@ -1,134 +1,134 @@
 name: Solar System Workflow
 
 on:
-    workflow_dispatch:
-    push:
-        branches:
-            - main
-            - 'feature/*'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "feature/*"
 
 env:
-    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
-    MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
-    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+  MONGO_URI: "mongodb+srv://supercluster.d83jj.mongodb.net/superData"
+  MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
+  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 jobs:
-    unit-testing:
-        name: Unit Testing
-        runs-on: ubuntu-latest
-        
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+  unit-testing:
+    name: Unit Testing
+    runs-on: ubuntu-latest
 
-            - name: Setup NodeJS Version - 18
-              uses: actions/setup-node@v3
-              with:
-                  node-version: 18
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Cache NPM Dependencies
-              uses: actions/cache@v5
-              with:
-                path: node_modules
-                key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+      - name: Setup NodeJS Version - 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-            - name: Install Dependencies
-              run: npm install
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
 
-            - name: Run Unit Tests
-              run: npm test
+      - name: Install Dependencies
+        run: npm install
 
-            - name: Archive Test Results
-              if: always()
-              uses: actions/upload-artifact@v7
-              with:
-                name: Mocha Test Results
-                path: test-results.xml
+      - name: Run Unit Tests
+        run: npm test
 
-    code-coverage:
-        name: Code Coverage
-        runs-on: ubuntu-latest 
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+      - name: Archive Test Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Mocha Test Results
+          path: test-results.xml
 
-            - name: Setup NodeJS Version - 18
-              uses: actions/setup-node@v3
-              with:
-                  node-version: 18
+  code-coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Cache NPM Dependencies
-              uses: actions/cache@v5
-              with:
-                path: node_modules
-                key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+      - name: Setup NodeJS Version - 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-            - name: Install Dependencies
-              run: npm install
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
 
-            - name: Check Code Coverrage
-              continue-on-error: true
-              run: npm run coverage 
-              
-            - name: Archive Test Result
-              uses: actions/upload-artifact@v7
-              with: 
-                name: Code Coverage Report
-                path: coverage
-                retention-days: 5
+      - name: Install Dependencies
+        run: npm install
 
-    docker:
-      name: Containerization
-      runs-on: ubuntu-latest
-      needs: [unit-testing, code-coverage]
-      permissions:
-        packages: write
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
+      - name: Check Code Coverrage
+        continue-on-error: true
+        run: npm run coverage
 
-        - name: Docker Login
-          uses: docker/login-action@v4
-          with:
-            username: ${{ vars.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
-          
-        - name: GHCR Login
-          uses: docker/login-action@v4
-          with:
-            registry: ghcr.io
-            username: ${{ github.repository_owner }}
-            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive Test Result
+        uses: actions/upload-artifact@v7
+        with:
+          name: Code Coverage Report
+          path: coverage
+          retention-days: 5
 
-        - name: Docker Build for Testing
-          uses: docker/build-push-action@v4
-          with:
-            context: .
-            push: false
-            tags: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+  docker:
+    name: Containerization
+    runs-on: ubuntu-latest
+    needs: [unit-testing, code-coverage]
+    permissions:
+      packages: write
 
-        - name: Docker Image Testing
-          run: |
-            docker images
-            docker run --name solar-system-app -d \
-              --publish 3000:3000 \
-              --env MONGO_URI=$MONGO_URI \
-              --env MONGO_USERNAME=$MONGO_USERNAME \
-              --env MONGO_PASSWORD=$MONGO_PASSWORD \
-              ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
-            
-            export IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solar-system-app)
-            echo $IP
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            echo Testing Image URL using Wget
-            wget -q -O - 127.0.0.1:3000/live | grep live
+      - name: Docker Login
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Container Registry Push
-          uses: docker/build-push-action@v4
-          with:
-            context: .
-            push: true
-            tags: |
-              ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
-              ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}
+      - name: GHCR Login
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Docker Build for Testing
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+
+      - name: Docker Image Testing
+        run: |
+          docker images
+          docker run --name solar-system-app -d \
+            --publish 3000:3000 \
+            --env MONGO_URI=$MONGO_URI \
+            --env MONGO_USERNAME=$MONGO_USERNAME \
+            --env MONGO_PASSWORD=$MONGO_PASSWORD \
+            ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+
+          export IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solar-system-app)
+          echo $IP
+
+          echo Testing Image URL using Wget
+          wget -q -O - 127.0.0.1:3000/live | grep live
+
+      - name: Container Registry Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}
