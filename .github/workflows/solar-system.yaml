@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Setup NodeJS Version - 18
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v5
@@ -42,20 +42,21 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: Mocha Test Results
-          path: test-results.xml
+          name: mocha-test-result
+          path: test-result.xml
 
   code-coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
+    steps:
       - name: Setup NodeJS Version - 18
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v5
@@ -66,28 +67,26 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Check Code Coverrage
+      - name: Check Code Coverage
         continue-on-error: true
         run: npm run coverage
 
       - name: Archive Test Result
         uses: actions/upload-artifact@v7
         with:
-          name: Code Coverage Report
+          name: code-coverage-report
           path: coverage
           retention-days: 5
 
   docker:
     name: Containerization
     runs-on: ubuntu-latest
+    
     needs: [unit-testing, code-coverage]
     permissions:
       packages: write
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Docker Login
         uses: docker/login-action@v4
         with:
@@ -100,6 +99,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Docker Build for Testing
         uses: docker/build-push-action@v4
