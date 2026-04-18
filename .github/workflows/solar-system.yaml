@@ -75,10 +75,10 @@ jobs:
       MONGO_PASSWORD: non-prod-password
 
     steps:
-      - name: Setup NodeJS Version - 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      # - name: Setup NodeJS Version - 18
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18
 
       - name: Checkout Repository
         uses: actions/checkout@v4
