@@ -83,17 +83,20 @@ jobs:
       steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
+
         - name: Docker Login
           uses: docker/login-action@v4
           with:
             username: ${{ vars.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
+
         - name: Docker Build for Testing
           uses: docker/build-push-action@v4
           with:
             context: .
             push: false
             tags: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+
         - name: Docker Image Testing
           run: |
             docker images
@@ -109,3 +112,11 @@ jobs:
 
             echo Testing Image URL using Wget
             wget -q -O - 127.0.0.1:3000/live | grep live
+        
+        - name: Docker Push
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            push: true
+            tags: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }} 
+            
