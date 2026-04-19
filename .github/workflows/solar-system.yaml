@@ -217,3 +217,9 @@ jobs:
         run: |
           kubectl apply -f kubernetes/development 
 
+      - name: Port forward test
+        run: |
+          kubectl port-forward svc/solar-system 3000:3000 -n ${{ vars.NAMESPACE }} &
+          sleep 5
+          curl localhost:3000
+
