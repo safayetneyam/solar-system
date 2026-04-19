@@ -213,6 +213,10 @@ jobs:
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
+      - name: Pull image from registry
+        run: |
+          docker pull ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+
       - name: Load image into kind
         run: |
           kind load docker-image ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
