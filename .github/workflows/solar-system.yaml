@@ -176,6 +176,6 @@ jobs:
         uses: helm/kind-action@v1
       - name: Fetch Kubernetes Cluster Details
         run: |
-          kubectl version --short
+          kubectl version
           echo -------------------------------------------
           kubectl get nodes
