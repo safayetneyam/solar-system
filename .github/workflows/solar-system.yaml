@@ -213,6 +213,10 @@ jobs:
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
+      - name: Load image into kind
+        run: |
+          kind load docker-image ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+
       - name: Deploy to Dev Environment
         run: |
           kubectl apply -f kubernetes/development 
