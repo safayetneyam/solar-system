@@ -225,6 +225,11 @@ jobs:
         run: |
           kubectl apply -f kubernetes/development 
 
+      - name: Wait for pods to be ready
+        run: |
+          kubectl wait --for=condition=ready pod \
+            --all -n development --timeout=120s
+
       - name: Port forward test
         run: |
           kubectl port-forward svc/solar-system 3000:3000 -n ${{ vars.NAMESPACE }} &
