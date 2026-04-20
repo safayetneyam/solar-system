@@ -165,6 +165,9 @@ jobs:
     needs: docker
     runs-on: ubuntu-latest
 
+    outputs:
+      APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -206,6 +209,7 @@ jobs:
         run: |
           cat kubernetes/development/*.yaml
       
+      # Ensure Namespace Exists (not in instructor manual)
       - name: Ensure Namespace Exists
         run: |
           kubectl create namespace ${{ vars.NAMESPACE }} \
@@ -226,6 +230,23 @@ jobs:
         run: |
           kubectl apply -f kubernetes/development 
 
+      - name: Set APP Ingress HOST URL
+        id: set-ingress-host-address
+        run: |
+          echo "APP_INGRESS_HOST=$(kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath='{.items[0].spec.rules[0].host}')" >> $GITHUB_OUTPUT
 
+  integration-test:
+    name: Development Integration Testing
+    needs: dev-deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test URL Output using CURL and JQ
+        env:
+          URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
+        run: | 
+          echo $URL
+          echo -------------------------------------------
+          curl $URL/live -s -k | jq -r .status | grep -i live
 
       
