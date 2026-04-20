@@ -208,8 +208,8 @@ jobs:
       
       - name: Ensure Namespace Exists
         run: |
-          kubectl create namespace ${{ vars.NAMESPACE }} 
-          --dry-run=client 
+          kubectl create namespace ${{ vars.NAMESPACE }} \
+          --dry-run=client \
           -o yaml | kubectl apply -f -
       
       - name: Create MongoDB Secret
