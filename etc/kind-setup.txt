@@ -1,63 +1,77 @@
 
-- name: Create Kubernetes Cluster (kind)
-uses: helm/kind-action@v1
+  dev-deploy:
+    name: Start of CD Pipeline
+    needs: docker
+    runs-on: ubuntu-latest
 
-- name: Fetch Kubernetes Cluster Details
-run: |
-    kubectl version
-    echo -------------------------------------------
-    kubectl get nodes
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-- name: Replace Tokens in Manifest Files
-uses: cschleiden/replace-tokens@v1
-with:
-    tokenPrefix: '${'
-    tokenSuffix: '}'
-    files: '["kubernetes/development/*.yaml"]'
-env:
-    NAMESPACE: ${{ vars.NAMESPACE }}
-    REPLICAS: ${{ vars.REPLICAS }}
-    IMAGE: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
-    INGRESS_IP: localhost
+      - name: Install kubectl cli
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.26.0'
 
-- name: Check Files
-run: |
-    cat kubernetes/development/*.yaml
+      - name: Create Kubernetes Cluster (kind)
+        uses: helm/kind-action@v1
 
-- name: Create Namespace
-run: |
-    kubectl create namespace ${{ vars.NAMESPACE }} || true
+      - name: Fetch Kubernetes Cluster Details
+        run: |
+          kubectl version
+          echo -------------------------------------------
+          kubectl get nodes
 
-- name: Create MongoDB Secret
-run: |
-    kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-    --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
-    --from-literal=MONGO_USERNAME=${{ env.MONGO_USERNAME }} \
-    --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
-    --save-config \
-    --dry-run=client \
-    -o yaml | kubectl apply -f -
+      - name: Replace Tokens in Manifest Files
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '${'
+          tokenSuffix: '}'
+          files: '["kubernetes/development/*.yaml"]'
+        env:
+          NAMESPACE: ${{ vars.NAMESPACE }}
+          REPLICAS: ${{ vars.REPLICAS }}
+          IMAGE: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+          INGRESS_IP: localhost
 
-- name: Pull image
-run: |
-    docker pull ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
+      - name: Check Files
+        run: |
+          cat kubernetes/development/*.yaml
 
-- name: Load image into kind
-run: |
-    kind load docker-image ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }} --name chart-testing
+      - name: Create Namespace
+        run: |
+          kubectl create namespace ${{ vars.NAMESPACE }} || true
+      
+      - name: Create MongoDB Secret
+        run: |
+          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
+            --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
+            --from-literal=MONGO_USERNAME=${{ env.MONGO_USERNAME }} \
+            --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
+            --save-config \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
 
-- name: Deploy to Dev Environment
-run: |
-    kubectl apply -f kubernetes/development 
+      - name: Pull image
+        run: |
+          docker pull ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
 
-- name: Wait for pods to be ready
-run: |
-    kubectl wait --for=condition=ready pod \
-    --all -n development --timeout=120s
+      - name: Load image into kind
+        run: |
+          kind load docker-image ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }} --name chart-testing
 
-- name: Port forward test
-run: |
-    kubectl port-forward svc/solar-system 3000:3000 -n ${{ vars.NAMESPACE }} &
-    sleep 5
-    curl localhost:3000
+      - name: Deploy to Dev Environment
+        run: |
+          kubectl apply -f kubernetes/development 
+
+      - name: Wait for pods to be ready
+        run: |
+          kubectl wait --for=condition=ready pod \
+            --all -n development --timeout=120s
+
+      - name: Port forward test
+        run: |
+          kubectl port-forward svc/solar-system 3000:3000 -n ${{ vars.NAMESPACE }} &
+          sleep 5
+          curl localhost:3000
 
