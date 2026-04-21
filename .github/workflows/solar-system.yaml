@@ -164,6 +164,7 @@ jobs:
     name: Start of CD Pipeline
     if: contains(github.ref, 'feature/')
     needs: docker
+
     uses: ./.github/workflows/reuse-deployment.yaml
     secrets:
       k8s-kubeconfig: ${{ secrets.KUBECONFIG }}
@@ -192,6 +193,9 @@ jobs:
     needs: docker
 
     uses: ./.github/workflows/reuse-deployment.yaml
+    secrets:
+      k8s-kubeconfig: ${{ secrets.KUBECONFIG }}
+      mongodb-password: ${{ secrets.MONGO_PASSWORD }}
 
   prod-integration-test:
     if: github.ref == 'refs/heads/main'
