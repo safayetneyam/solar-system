@@ -2,9 +2,14 @@ name: Deployment - Reusable Workflow
 
 on:
   workflow_call:
+    secrets:
+      k8s-kubeconfig:
+        required: true  
+      mongodb-password:
+        required: true
 
 jobs:
-  reuse-deploy: 
+  reuse-deploy:
     runs-on: ubuntu-latest
 
     environment:
@@ -21,13 +26,13 @@ jobs:
       - name: Install kubectl cli
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.26.0'
+          version: "v1.26.0"
 
       - name: Set Kubeconfig
         uses: azure/k8s-set-context@v5
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+          kubeconfig: ${{ secrets.k8s-kubeconfig }}
 
       - name: Fetch Kubernetes Cluster Details
         run: |
@@ -37,44 +42,44 @@ jobs:
 
       - name: Save NGINX Ingress Controller IP as Github Environment Variable
         run: |
-            echo "INGRESS_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
-            
+          echo "INGRESS_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
       - name: Replace Tokens in Kubernetes Manifests
         uses: cschleiden/replace-tokens@v1
         with:
-          tokenPrefix: '${'
-          tokenSuffix: '}'
+          tokenPrefix: "${"
+          tokenSuffix: "}"
           files: '["kubernetes/development/*.yaml"]'
         env:
           NAMESPACE: ${{ vars.NAMESPACE }}
           REPLICAS: ${{ vars.REPLICAS }}
           IMAGE: ${{ vars.DOCKER_USERNAME }}/solar-system:${{ github.sha }}
-          INGRESS_IP: ${{ env.INGRESS_IP}}
+          INGRESS_IP: ${{ env.INGRESS_IP }}
 
       - name: Check Files
         run: |
           cat kubernetes/development/*.yaml
-      
+
       # Ensure Namespace Exists (not in instructor manual)
       - name: Ensure Namespace Exists
         run: |
           kubectl create namespace ${{ vars.NAMESPACE }} \
           --dry-run=client \
           -o yaml | kubectl apply -f -
-      
+
       - name: Create MongoDB Secret
         run: |
           kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
             --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
             --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-            --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
+            --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
             --save-config \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
       - name: Deploy to Development Environment
         run: |
-          kubectl apply -f kubernetes/development 
+          kubectl apply -f kubernetes/development
 
       - name: Set APP Ingress HOST URL
         id: set-ingress-host-address
