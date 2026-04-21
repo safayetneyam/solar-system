@@ -131,8 +131,15 @@ jobs:
 
           ls -ltr reports-${{ github.sha }}
 
-      - name: Upload to AWS S3 Bucket
-        run: echo "Uploading Reports to AWS S3 Bucket ... .. .!"
+      - name: Upload to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACES_BUCKET }}
+          space_region: ${{ secrets.DO_SPACES_REGION }}
+          source: reports-${{ github.sha }}
+          destination: reports/${{ github.sha }}
 
   docker:
     name: Containerization
