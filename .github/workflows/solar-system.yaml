@@ -139,7 +139,7 @@ jobs:
           space_name: ${{ secrets.DO_SPACES_BUCKET }}
           space_region: ${{ secrets.DO_SPACES_REGION }}
           source: reports-${{ github.sha }}
-          destination: reports/${{ github.sha }}
+          out_dir: reports-${{ github.sha }}
 
   docker:
     name: Containerization
