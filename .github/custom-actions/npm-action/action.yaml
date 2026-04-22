@@ -1,0 +1,21 @@
+name: NPM Action to Cache and Install Dependencies
+description: A custom GitHub Action to cache npm dependencies and install them.
+
+inputs:
+  path-to-folder:
+    description: 'Path to Cache'
+    required: true
+    default: 'node_modules'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache NPM Dependencies
+      uses: actions/cache@v5
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+    - name: Install Dependencies
+      run: npm install
+      shell: bash
