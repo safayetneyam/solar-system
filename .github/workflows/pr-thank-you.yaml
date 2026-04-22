@@ -1,0 +1,22 @@
+on:
+    pull_request:
+        types:
+            - opened
+
+jobs:
+    pr-docker-action:
+        runs-on: ubuntu-latest
+
+        permissions:
+            issues: write
+            pull-requests: write
+
+        steps:
+            - name: "Checkout Repository"
+              uses: actions/checkout@v6
+
+            - name: Post PR Comment
+              uses: safayetneyam/docker-action-pr-giphy-comment@main
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
