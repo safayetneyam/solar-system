@@ -37,14 +37,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v5
+      - name: Cache and Install NPM Packages
+        uses: ./.github/custom-actions/npm-action
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Dependencies
-        run: npm install
+          path-to-folder: node_modules
 
       - name: Run Unit Tests
         run: npm test
@@ -83,14 +79,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v5
+      - name: Cache and Install NPM Packages
+        uses: ./.github/custom-actions/npm-action
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Dependencies
-        run: npm install
+          path-to-folder: node_modules
 
       - name: Check Code Coverage
         continue-on-error: true
