@@ -47,3 +47,90 @@ If the installation was successful, you should be able to run the following comm
 ## Access Application on Browser
     http://localhost:3000/
 
+---
+
+# CI/CD with GitHub Actions
+
+This project uses **GitHub Actions** for Continuous Integration and Continuous Deployment (CI/CD), enabling automated testing, building, and deployment across multiple environments.
+
+## Environments
+
+Two environments are configured in GitHub:
+
+- **development**
+- **production**
+
+Each environment contains:
+- Environment-specific **secrets**
+- Environment-specific **variables**
+- Optional protection rules (e.g., wait time, required reviewers)
+
+
+
+## Environment Configuration
+
+### Production Environment
+
+- **Secret**
+  - `KUBECONFIG`  
+    Stores the Kubernetes configuration file for accessing the production cluster.
+
+- **Variables**
+  - `NAMESPACE = production`
+  - `REPLICAS = 5` *(example value)*
+
+
+### Development Environment
+
+- **Secret**
+  - `KUBECONFIG`  
+    Stores the Kubernetes configuration file for accessing the development cluster.
+
+- **Variables**
+  - `NAMESPACE = development`
+  - `REPLICAS = 2` *(example value)*
+
+---
+
+## Repository Secrets
+
+The following secrets are configured at the repository level and used in workflows.
+
+### DigitalOcean Spaces (Log Storage)
+
+Used as an alternative to AWS S3 for storing logs and artifacts:
+
+- `DO_SPACES_ACCESS_KEY`
+- `DO_SPACES_SECRET_KEY`
+- `DO_SPACES_BUCKET`
+- `DO_SPACES_REGION`
+
+
+### Pull Request Automation
+
+- `GIPHY_API_KEY`  
+  Used to generate automated comments on pull requests via custom GitHub Actions (Docker and JS Action).
+
+---
+
+### Workflow Credentials
+
+- `MONGO_PASSWORD`  
+  Used for MongoDB authentication.
+
+- `DOCKER_PASSWORD`  
+  Used for Docker registry authentication.
+
+---
+
+## Repository Variables
+
+The following variables are used across workflows:
+
+- `DOCKER_USERNAME`
+- `MONGO_URI`  
+  MongoDB connection string to connect to the database.
+- `MONGO_USERNAME`
+- `REPLICAS`
+
+---
