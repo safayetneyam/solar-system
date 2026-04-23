@@ -22,7 +22,9 @@ jobs:
                   giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
             
             - name: Post JavaScript Actions PR Comment
-              uses: safayetneyam/js-action-pr-giphy-comment@1.0.0-alpha
+              uses: safayetneyam/js-action-pr-giphy-comment@1.0.1-alpha
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
+
+
