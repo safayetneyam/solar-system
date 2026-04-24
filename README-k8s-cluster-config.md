@@ -132,18 +132,15 @@ kubectl get ingress -n <your-namespace>
 Example output:
 ```
 NAME           CLASS    HOSTS                                            ADDRESS          PORTS     AGE
-solar-system   <none>   solar-system-development.168.144.48.104.nip.io   168.144.48.104   80, 443   6m18s
+solar-system   <none>   solar-system-development.<IPv4>.nip.io   <IPv4>   80,443   6m18s
 ```
 
 The nip.io service provides wildcard DNS, allowing access via the LoadBalancer IP with a subdomain format.
 
 ## Next Steps
 
-1. Deploy your application manifests to the cluster
-2. Configure ingress rules for external access
-3. Set up HTTPS certificates if needed
-4. Configure monitoring and logging
-5. Implement backup strategies for persistent data
+1. Insert the copied configuration text mentioned in Step 04 as secrets inside both  `development` environment and `production` environment. 
+2. Github Actions uses the environment secrets for Production and Deployment purpose inside Kubernetes Cluster.
 
 ## Troubleshooting
 
@@ -151,12 +148,3 @@ The nip.io service provides wildcard DNS, allowing access via the LoadBalancer I
 - Verify cluster connectivity with `kubectl cluster-info`
 - Check ingress controller logs: `kubectl logs -n ingress-nginx deployment/ingress-nginx-controller`
 - Use `kubectl describe` commands to get detailed resource information
-
-## Security Notes
-
-- Store access tokens securely (never in code repositories)
-- Regularly rotate API credentials
-- Use RBAC to limit cluster access
-- Enable audit logging for security monitoring
-- Implement network policies to control pod communication
-- Use secrets management for sensitive configuration data
