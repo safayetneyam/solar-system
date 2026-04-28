@@ -66,11 +66,15 @@ jobs:
       #   run: |
       #     echo "INGRESS_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
 
+      # - name: Save NGINX Ingress Controller IP as Github Environment Variable
+      #   run: |
+      #     SERVER_URL=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+      #     EXTRACTED_IP=$(echo $SERVER_URL | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+      #     echo "INGRESS_IP=$EXTRACTED_IP" >> $GITHUB_ENV
+      
       - name: Save NGINX Ingress Controller IP as Github Environment Variable
         run: |
-          SERVER_URL=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-          EXTRACTED_IP=$(echo $SERVER_URL | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-          echo "INGRESS_IP=$EXTRACTED_IP" >> $GITHUB_ENV
+          echo "INGRESS_IP=44.223.38.186" >> $GITHUB_ENV
 
       - name: Replace Tokens in Kubernetes Manifests
         uses: cschleiden/replace-tokens@v1
